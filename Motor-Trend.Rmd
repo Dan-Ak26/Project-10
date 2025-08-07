@@ -1,0 +1,112 @@
+---
+title: "Motor Trends"
+author: "Daniel Aklilu"
+date: "2025-08-06"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Executive Summary
+  This analysis explores whether manual or automatic transmissions are more fuel efficient using the mtcars dataset. Using the mtcars dataset, I began with the exploratory data analysis to compare MPG accross transmission types. I also used linear regression models, including both simple and multiple regression, to account for potential related variables such as weight, horsepower,and the numbers of cylinders. Finally I used Model diagnostics to perform the validity of the regression assumptions.
+
+## Introduction
+-download mtcar data set and libraries
+
+```{r, warning=FALSE, echo=TRUE, results='hide'}
+# Load Neccessary libraries
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+#install.packages("tinytext", repos = "https://cloud.r-projects.org/")
+#tinytex::install_tinytex()
+tinytex::tinytex_root()
+#Load dataset
+data("mtcars")
+head(mtcars)
+str(mtcars)
+
+```
+
+## Exploratory Data analysis
+
+```{r,echo=TRUE,results='hide'}
+
+#Group by transmission and calculate summary statistics
+convert <- mtcars %>%
+      mutate(Transmission = factor(am, labels =
+      c("Automatic", "Manual")))%>%
+      group_by(Transmission) %>%
+      summarise(Avg_mpg = mean(mpg),
+      SD = sd(mpg),
+      Total_cars = n())
+# Display the summary table 
+head(convert)
+
+
+```
+
+## Regression Modeling
+
+```{r,echo=TRUE}
+
+  # Create a new column for labeled
+# transmission types
+    mtcars_with_trans <- mtcars %>%
+  mutate(Transmission = factor(am, labels
+          = c("Automatic", "Manual")))
+
+
+# Fit a simple linear regression model
+ model1 <- lm(mpg ~ Transmission, mtcars_with_trans)
+# Fit a multiple regression model controlling for weight, hp, and cyl.
+ model2 <- lm(mpg ~ Transmission + wt + hp + cyl, mtcars_with_trans)
+ 
+ model1
+ model2
+
+```
+## Linear Model
+ In the simple linear regression model, manual transmission cars had an estimated 7.25 MPG advantage over automatic cars. However, after adjusting for confounding factors such as weight, horsepower, and number of cylinders, the difference dropped to 1.48 MPG. This suggests that part of the initial difference is explained by other characteristics of the cars, though manual transmissions still appear to be more fuel efficient.
+
+```{r}
+# Create a scatter plot matrix of all numeric variables
+# in mtcars
+
+# this helps me visually assess potential relationships
+# and when variables give similar information.
+pairs(mtcars)
+
+# Create a boxplot to visualize MPG by transmission type
+boxplot(mpg ~ Transmission, mtcars_with_trans, xlab = "Transmission",
+        ylab = "Miles per Gallon",
+        main = "MPG by Transmission Type", col = "red")
+
+```
+
+
+
+
+## Residual Diagnostics
+```{r, echo=TRUE}
+# Generate diagnostic plots to check model assumptions.
+plot(model2)
+
+```
+## Summary
+ I conducted residual diagnostics to evaluate whether the linear regression assumptions were satisfied. The residual vs fitted plot showed no major deviations from linearity. The Q-Q plot indicated that the residuals were normally distributed. The scale-location plot suggested roughly equal variance of residuals. Finally, no influential outliers were identified in the leverage plot. Finally, the model assumptions appear to be reasonably met.
+
+```{r, echo=TRUE}
+#show summary of model 2
+summary(model2)
+# Show confidence interval for model
+# coefficients
+confint(model2)
+
+```
+## Statistical Inference results
+  A multiple linear regression was performed to estimat the effect of transmission type on MPG while controlling for weight, horsepower, and number of cylinders. The coefficient for manual transmission was 1.48 MPG, suggesting that, on average, manual cars had slightly higher fuel efficiency than automatic cars. However, the p-value associated with this estimate was 0.31, indicating that the difference was not statistically significant at the 5% level. The 95% confidence interval ranged from -1.44 to 4.40, which includes zero, providing further evidence that the observed difference may be due to chance. After I adjusted for other cars characteristics, there is insufficient evidence to conclude that transmission type has a significant impact on MPG.
+
+## Conclusion 
+   Based on both exploratory analysis and regression modeling, we found that manual cars initially appeared to have better fuel efficiency. However, once we accounted for other car characteristics. For example, Weight, horsepower, and number of cylinders. The estimated difference decreased to 1.48 MPG and was not statistically significant. Our model diagnostics showed that linear regression assumptions were resonably satisfied. Overall, we conclude that transmission type alone doesn't significantly predict MPG in the presence of other influencing factors. 
